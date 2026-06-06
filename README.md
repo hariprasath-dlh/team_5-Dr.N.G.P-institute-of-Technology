@@ -361,10 +361,3 @@ Create an AI-powered portfolio builder that automatically showcases student achi
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-> Built with ❤️ by Team FutureForge | MSME Idea Hackathon 5.0
