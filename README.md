@@ -343,6 +343,13 @@ futureforge-ai/
 ```
 
 ---
+Future Scope 
+
+Add real-time industry trend analysis to recommend emerging skills and career opportunities.
+Implement AI mentor matching to connect students with alumni and industry professionals.
+Develop a personalized internship and project recommendation system based on student skills and interests.
+Introduce peer learning communities where students can collaborate, share knowledge, and grow together.
+Create an AI-powered portfolio builder that automatically showcases student achievements and projects.
 
 ## 🤝 Contributing
 
