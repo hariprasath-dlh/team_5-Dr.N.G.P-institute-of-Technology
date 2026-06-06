@@ -1,8 +1,8 @@
-# 🚀 FutureForge AI — AI-Native Employability Ecosystem
+# 🚀 CareerTwin AI — AI-Native Employability Ecosystem
 
 > *"From Student → Builder → Professional → Lifelong Learner"*
 
-FutureForge AI is an AI-powered career operating system designed for higher education institutions. It bridges the gap between academic learning and real-world employability by equipping students with live projects, AI-native skills, verified portfolios, mentor networks, and internship opportunities — all before graduation.
+CareerTwin  AI is an AI-powered career operating system designed for higher education institutions. It bridges the gap between academic learning and real-world employability by equipping students with live projects, AI-native skills, verified portfolios, mentor networks, and internship opportunities — all before graduation.
 
 ---
 
