@@ -118,15 +118,11 @@ Students solve real industry, startup, and social challenges.
 ```
 Student Joins
      ↓
-AI Assessment
-     ↓
 Career Twin Created
      ↓
 Skill Gap Analysis
      ↓
 Project Recommendations
-     ↓
-Mentor Matching
      ↓
 Project Completion
      ↓
@@ -150,7 +146,7 @@ Lifelong Learning
 | Backend | Node.js, Express.js |
 | Database | PostgreSQL |
 | AI Engine | GPT Models, RAG Knowledge Base |
-| Cloud | AWS |
+| Cloud | AWS | (Future)
 
 ---
 
