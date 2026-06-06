@@ -250,20 +250,17 @@ Our team of 5 members has divided the project into clear, equal ownership areas 
 
 ---
 
-### 👤 Member 5 — Product, Business & Integration Lead
+Member 5 – Testing, Quality Assurance & Product Integration Lead
 
-**Responsibilities:**
-- Own product documentation, README, and technical specifications
-- Define and manage user personas, user stories, and feature acceptance criteria
-- Lead business model implementation (college B2B onboarding flow, recruiter access portal, mentor revenue sharing module)
-- Coordinate API integration between frontend, backend, and AI engine
-- Manage project board, sprint planning, testing, and quality assurance
+Responsibilities:
 
-**Modules Owned:**
-- `/docs/`
-- `/business/onboarding/`
-- `/business/recruiter-portal/`
-- `/tests/`
+Perform functional, integration, and system testing of the application.
+Verify that all features work according to the specified requirements.
+Identify, document, and track bugs throughout the development lifecycle.
+Conduct user acceptance testing (UAT) and ensure a smooth user experience.
+Validate API integrations between frontend, backend, and AI modules.
+Support sprint planning, project coordination, and quality assurance activities.
+Maintain testing documentation, test cases, and test reports.
 
 ---
 
