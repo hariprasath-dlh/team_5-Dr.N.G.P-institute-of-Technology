@@ -343,6 +343,13 @@ futureforge-ai/
 ```
 
 ---
+Future Scope 
+
+Add real-time industry trend analysis to recommend emerging skills and career opportunities.
+Implement AI mentor matching to connect students with alumni and industry professionals.
+Develop a personalized internship and project recommendation system based on student skills and interests.
+Introduce peer learning communities where students can collaborate, share knowledge, and grow together.
+Create an AI-powered portfolio builder that automatically showcases student achievements and projects.
 
 ## 🤝 Contributing
 
@@ -354,10 +361,3 @@ futureforge-ai/
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-> Built with ❤️ by Team FutureForge | MSME Idea Hackathon 5.0
