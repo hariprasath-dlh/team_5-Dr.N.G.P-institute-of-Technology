@@ -1,21 +1,49 @@
 import React from 'react';
-import { ShieldAlert, Star, TrendingUp, Award, Users, Briefcase, Layout } from 'lucide-react';
-import { calculateEmployabilityScore, MENTOR_REVIEWS } from '../data/mockData';
+import { ShieldAlert, Star, TrendingUp, Award, Users, Briefcase, Layout, Database } from 'lucide-react';
+import { calculateEmployabilityScore } from '../data/mockData';
 
 export default function EmployabilityScore({ 
   stats, 
   careerData, 
-  completedProjectIds, 
-  completedInternshipIds, 
-  activeSquadPeers 
+  completedProjectIds = [], 
+  completedInternshipIds = [], 
+  activeSquadPeers = [],
+  mentorReviews = []
 }) {
   const completedProjectsCount = completedProjectIds.length;
   const completedInternshipsCount = completedInternshipIds.length;
   const squadPeersCount = activeSquadPeers.length;
 
+  // Guard: No Active Career Goal Pathway
+  if (!careerData) {
+    return (
+      <div className="employability-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Award size={48} style={{ color: 'var(--accent-cyan)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Readiness Score Card Locked</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            To generate your verified employability readiness index, you must first define an active Career Specialization Pathway.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const score = calculateEmployabilityScore(
     stats, 
-    careerData.skills, 
+    careerData.skills || [], 
     completedProjectsCount, 
     completedInternshipsCount, 
     squadPeersCount
@@ -34,10 +62,12 @@ export default function EmployabilityScore({
   const radius = 80;
   const strokeWidth = 10;
   const circumference = 2 * Math.PI * radius;
-  // Arc is half circle (180 degrees) or 3/4 circle. Let's do 3/4 circle (270 degrees).
-  // Stroke dashoffset for gauge fill
   const percentage = score / 1000;
   const strokeDashoffset = circumference * (1 - (percentage * 0.75)); // Gauge takes up 75% of full circle
+
+  const avgSkillVal = careerData.skills && careerData.skills.length > 0 
+    ? (careerData.skills.reduce((acc, curr) => acc + curr.current, 0) / careerData.skills.length)
+    : 0;
 
   return (
     <div className="employability-container">
@@ -111,7 +141,7 @@ export default function EmployabilityScore({
             {/* Micro rating comparison */}
             <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border-color)', width: '100%', marginTop: '1.5rem', paddingTop: '1rem', justify: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
               <TrendingUp size={16} style={{ color: '#10b981' }} />
-              <span>Score increased by <strong style={{ color: '#10b981' }}>+45 pts</strong> this week</span>
+              <span>Score based on active portfolio ledger updates</span>
             </div>
           </div>
         </div>
@@ -131,7 +161,7 @@ export default function EmployabilityScore({
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>PROJECTS SOLVED</span>
                   <Award size={16} style={{ color: 'var(--accent-violet)' }} />
                 </div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{completedProjectsCount} / 3</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{completedProjectsCount} solved</div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Contribution: +{completedProjectsCount * 120} pts</span>
               </div>
 
@@ -142,10 +172,10 @@ export default function EmployabilityScore({
                   <TrendingUp size={16} style={{ color: 'var(--accent-cyan)' }} />
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>
-                  {careerData.skills.length > 0 ? (careerData.skills.reduce((acc, curr) => acc + curr.current, 0) / careerData.skills.length).toFixed(0) : 0}%
+                  {avgSkillVal.toFixed(0)}%
                 </div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Contribution: +{Math.round((careerData.skills.reduce((acc, curr) => acc + curr.current, 0) / careerData.skills.length) * 3.5)} pts
+                  Contribution: +{Math.round(avgSkillVal * 3.5)} pts
                 </span>
               </div>
 
@@ -181,31 +211,47 @@ export default function EmployabilityScore({
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {MENTOR_REVIEWS.map(rev => (
-                <div key={rev.id} style={{ display: 'flex', gap: '1rem', padding: '1rem', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)' }}>
-                  
-                  {/* Rating icon circle */}
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(124, 58, 237, 0.08)', border: '1px solid rgba(124, 58, 237, 0.2)', color: 'var(--accent-violet)', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
-                    <Star size={16} fill="var(--accent-violet)" />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div>
-                        <strong style={{ fontSize: '0.9rem', color: '#fff' }}>{rev.mentor}</strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>{rev.role}</span>
-                      </div>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>
-                        ★ {rev.rating} / 5.0
-                      </span>
+              {mentorReviews.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-secondary)' }}>
+                  <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>No verified mentor endorsements posted. Go to the Data Panel to add dynamic reviews!</p>
+                  <button 
+                    onClick={() => {
+                      const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                      if (manageTabBtn) manageTabBtn.click();
+                    }}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                  >
+                    <Database size={12} /> Log Mentor Endorsement
+                  </button>
+                </div>
+              ) : (
+                mentorReviews.map(rev => (
+                  <div key={rev.id} style={{ display: 'flex', gap: '1rem', padding: '1rem', borderRadius: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)' }}>
+                    
+                    {/* Rating icon circle */}
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(124, 58, 237, 0.08)', border: '1px solid rgba(124, 58, 237, 0.2)', color: 'var(--accent-violet)', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
+                      <Star size={16} fill="var(--accent-violet)" />
                     </div>
 
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', lineHeight: 1.4, fontStyle: 'italic' }}>
-                      "{rev.comment}"
-                    </p>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div>
+                          <strong style={{ fontSize: '0.9rem', color: '#fff' }}>{rev.mentor}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>{rev.role}</span>
+                        </div>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>
+                          ★ {rev.rating} / 5.0
+                        </span>
+                      </div>
+
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', lineHeight: 1.4, fontStyle: 'italic' }}>
+                        "{rev.comment}"
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 

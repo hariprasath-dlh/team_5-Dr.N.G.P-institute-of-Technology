@@ -1,35 +1,38 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Target, Award, Heart, MessageSquare, Plus } from 'lucide-react';
-import { MOCK_PEERS } from '../data/mockData';
+import { Users, UserPlus, Target, Award, Heart, MessageSquare, Plus, Database } from 'lucide-react';
 
-export default function PeerNetwork({ activeGoal, activeSquadPeers, onInvitePeer, onRemovePeer }) {
+export default function PeerNetwork({ 
+  peers = [], 
+  activeGoal, 
+  activeSquadPeers, 
+  onInvitePeer, 
+  onRemovePeer 
+}) {
   const [filterMode, setFilterMode] = useState("Goal Matches");
   const [squadName, setSquadName] = useState("Alpha Squad");
   const [squadType, setSquadType] = useState("Learning Squad");
   
   // Custom message history for active squads
   const [squadMessages, setSquadMessages] = useState([
-    { sender: "Sarah Kim", text: "Hey team! Ready to crush the next product brief?", time: "2 hours ago" },
-    { sender: "Elena Rostova", text: "Absolutely, I can handle the frontend wireframes.", time: "1 hour ago" }
+    { sender: "System", text: "Welcome to your active learning squad. Invite members to start!", time: "Just now" }
   ]);
   const [newMsg, setNewMsg] = useState("");
 
   // Filter mock peers based on selected path
-  const recommendedPeers = MOCK_PEERS.filter(peer => {
+  const recommendedPeers = peers.filter(peer => {
     if (activeSquadPeers.includes(peer.id)) return false; // Hide if already in squad
     
     if (filterMode === "Goal Matches") {
       return peer.targetGoal === activeGoal;
     }
     if (filterMode === "Interests") {
-      // Find matches that share interest categories with active goal
       const interestKeywords = {
         "Product Manager": ["SaaS", "Mobile Design", "Fintech", "EdTech", "UX Wireframes"],
         "AI Engineer": ["Generative AI", "NLP", "Robotics", "MLOps", "FastAPI"],
         "Frontend Developer": ["Web Accessibility", "Creative Layouts", "SaaS UI", "TailwindCSS", "NextJS"]
       };
       const targets = interestKeywords[activeGoal] || [];
-      return peer.interests.some(interest => targets.includes(interest));
+      return peer.interests && peer.interests.some(interest => targets.includes(interest));
     }
     return true;
   });
@@ -51,7 +54,7 @@ export default function PeerNetwork({ activeGoal, activeSquadPeers, onInvitePeer
 
     // Simulate peer replying
     setTimeout(() => {
-      const activePeersInSquad = MOCK_PEERS.filter(p => activeSquadPeers.includes(p.id));
+      const activePeersInSquad = peers.filter(p => activeSquadPeers.includes(p.id));
       if (activePeersInSquad.length > 0) {
         const randomPeer = activePeersInSquad[Math.floor(Math.random() * activePeersInSquad.length)];
         setSquadMessages(prev => [
@@ -66,7 +69,34 @@ export default function PeerNetwork({ activeGoal, activeSquadPeers, onInvitePeer
     }, 1200);
   };
 
-  const currentSquadMembers = MOCK_PEERS.filter(p => activeSquadPeers.includes(p.id));
+  const currentSquadMembers = peers.filter(p => activeSquadPeers.includes(p.id));
+
+  // If no peers exist, show empty state
+  if (peers.length === 0) {
+    return (
+      <div className="peer-network-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Users size={48} style={{ color: 'var(--accent-violet)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Peer Matches Empty</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            No students are registered in the study registry. Add peers in the Data Panel to populate cohort study circles.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="peer-network-container">
@@ -140,7 +170,7 @@ export default function PeerNetwork({ activeGoal, activeSquadPeers, onInvitePeer
 
                       {/* Skills Tags */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.5rem' }}>
-                        {peer.skills.map(s => (
+                        {peer.skills && peer.skills.map(s => (
                           <span key={s} className="project-tag" style={{ fontSize: '0.7rem' }}>
                             {s}
                           </span>
@@ -149,7 +179,7 @@ export default function PeerNetwork({ activeGoal, activeSquadPeers, onInvitePeer
                       
                       {/* Interest Tags */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.3rem' }}>
-                        {peer.interests.map(int => (
+                        {peer.interests && peer.interests.map(int => (
                           <span key={int} className="project-tag" style={{ fontSize: '0.7rem', borderColor: 'transparent', background: 'rgba(255,255,255,0.03)', color: 'var(--text-muted)' }}>
                             #{int}
                           </span>

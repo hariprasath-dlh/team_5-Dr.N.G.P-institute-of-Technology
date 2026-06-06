@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Filter, Award, ChevronRight, X, ExternalLink, RefreshCw, CheckCircle } from 'lucide-react';
-import { PROJECTS, getAIProjectReview } from '../data/mockData';
+import { Filter, Award, ChevronRight, X, ExternalLink, RefreshCw, CheckCircle, Database } from 'lucide-react';
+import { getAIProjectReview } from '../data/mockData';
 
 export default function ProjectMarketplace({ 
   stats,
+  projects = [],
   activeProjectIds, 
   completedProjectIds, 
   onAcceptProject, 
@@ -20,7 +21,7 @@ export default function ProjectMarketplace({
   const [evaluationStatus, setEvaluationStatus] = useState(null); // 'approved' | 'rejected'
 
   // Filter projects
-  const filteredProjects = PROJECTS.filter(proj => {
+  const filteredProjects = projects.filter(proj => {
     if (filterType === "All") return true;
     if (filterType === "Startups") return proj.sponsorType === "Startup";
     if (filterType === "NGOs") return proj.sponsorType === "NGO";
@@ -71,9 +72,9 @@ export default function ProjectMarketplace({
       if (review.status === 'approved') {
         onCompleteProject(
           selectedProject.id, 
-          selectedProject.rewards.xp, 
-          selectedProject.rewards.credits, 
-          selectedProject.rewards.reputation
+          selectedProject.rewards?.xp || 300, 
+          selectedProject.rewards?.credits || 3, 
+          selectedProject.rewards?.reputation || 10
         );
       }
     }, 2000);
@@ -81,6 +82,33 @@ export default function ProjectMarketplace({
 
   const isProjectActive = selectedProject ? activeProjectIds.includes(selectedProject.id) : false;
   const isProjectCompleted = selectedProject ? completedProjectIds.includes(selectedProject.id) : false;
+
+  // If no projects exist, show empty state
+  if (projects.length === 0) {
+    return (
+      <div className="marketplace-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Award size={48} style={{ color: 'var(--accent-cyan)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Project Marketplace Empty</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            No project briefs exist in the marketplace. Go to the Data Panel to add custom industry briefs and startup assignments.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="marketplace-container">
@@ -140,7 +168,7 @@ export default function ProjectMarketplace({
                 
                 {/* Skills Earned */}
                 <div className="project-tags">
-                  {proj.skillsEarned.map(skill => (
+                  {proj.skillsEarned && proj.skillsEarned.map(skill => (
                     <span key={skill} className="project-tag">{skill}</span>
                   ))}
                 </div>
@@ -149,15 +177,15 @@ export default function ProjectMarketplace({
                 <div className="project-rewards">
                   <div className="reward-item xp">
                     <span>🏆</span>
-                    <span>+{proj.rewards.xp} XP</span>
+                    <span>+{proj.rewards?.xp || 300} XP</span>
                   </div>
                   <div className="reward-item credits">
                     <span>⭐</span>
-                    <span>+{proj.rewards.credits} Credits</span>
+                    <span>+{proj.rewards?.credits || 3} Credits</span>
                   </div>
                   <div className="reward-item reputation">
                     <span>⚡</span>
-                    <span>+{proj.rewards.reputation} Rep</span>
+                    <span>+{proj.rewards?.reputation || 10} Rep</span>
                   </div>
                 </div>
 
@@ -211,32 +239,36 @@ export default function ProjectMarketplace({
                   </p>
                 </div>
 
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                    CLIENT DELIVERABLES REQUIRED
-                  </h4>
-                  <div className="deliverables-list">
-                    {selectedProject.deliverables.map((item, index) => (
-                      <div key={index} className="deliverable-item">
-                        <span style={{ color: 'var(--accent-violet)', fontWeight: 700 }}>✓</span>
-                        <span style={{ color: 'var(--text-primary)' }}>{item}</span>
-                      </div>
-                    ))}
+                {selectedProject.deliverables && (
+                  <div>
+                    <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                      CLIENT DELIVERABLES REQUIRED
+                    </h4>
+                    <div className="deliverables-list">
+                      {selectedProject.deliverables.map((item, index) => (
+                        <div key={index} className="deliverable-item">
+                          <span style={{ color: 'var(--accent-violet)', fontWeight: 700 }}>✓</span>
+                          <span style={{ color: 'var(--text-primary)' }}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                    SKILLS CREDITED ON PORTFOLIO
-                  </h4>
-                  <div className="project-tags">
-                    {selectedProject.skillsEarned.map(skill => (
-                      <span key={skill} className="project-tag" style={{ background: 'rgba(6, 182, 212, 0.05)', borderColor: 'rgba(6, 182, 212, 0.2)', color: '#67e8f9' }}>
-                        {skill}
-                      </span>
-                    ))}
+                {selectedProject.skillsEarned && (
+                  <div>
+                    <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                      SKILLS CREDITED ON PORTFOLIO
+                    </h4>
+                    <div className="project-tags">
+                      {selectedProject.skillsEarned.map(skill => (
+                        <span key={skill} className="project-tag" style={{ background: 'rgba(6, 182, 212, 0.05)', borderColor: 'rgba(6, 182, 212, 0.2)', color: '#67e8f9' }}>
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Right Column: Submission Console */}
@@ -266,7 +298,7 @@ export default function ProjectMarketplace({
                     <div>
                       <h4 style={{ color: '#10b981', fontSize: '1.1rem' }}>Project Completed!</h4>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                        AI review passed. {selectedProject.rewards.xp} XP, {selectedProject.rewards.credits} Credits, and {selectedProject.rewards.reputation} Reputation points have been credited to your portfolio.
+                        AI review passed. {selectedProject.rewards?.xp || 300} XP, {selectedProject.rewards?.credits || 3} Credits, and {selectedProject.rewards?.reputation || 10} Reputation points have been credited to your portfolio.
                       </p>
                     </div>
                     {evaluationFeedback && (
@@ -322,9 +354,9 @@ export default function ProjectMarketplace({
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>REWARDS ON COMPLETION:</span>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                    <span style={{ color: '#c084fc', fontWeight: 700 }}>🏆 +{selectedProject.rewards.xp} XP</span>
-                    <span style={{ color: '#f472b6', fontWeight: 700 }}>⭐ +{selectedProject.rewards.credits} Credits</span>
-                    <span style={{ color: '#22d3ee', fontWeight: 700 }}>⚡ +{selectedProject.rewards.reputation} Rep</span>
+                    <span style={{ color: '#c084fc', fontWeight: 700 }}>🏆 +{selectedProject.rewards?.xp || 300} XP</span>
+                    <span style={{ color: '#f472b6', fontWeight: 700 }}>⭐ +{selectedProject.rewards?.credits || 3} Credits</span>
+                    <span style={{ color: '#22d3ee', fontWeight: 700 }}>⚡ +{selectedProject.rewards?.reputation || 10} Rep</span>
                   </div>
                 </div>
 

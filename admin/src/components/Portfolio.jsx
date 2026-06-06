@@ -1,19 +1,25 @@
 import React from 'react';
-import { Award, Briefcase, Calendar, ShieldCheck, Download, Sparkles } from 'lucide-react';
-import { PROJECTS, ARENA_CHALLENGES } from '../data/mockData';
+import { Award, Briefcase, Calendar, ShieldCheck, Download, Sparkles, Database } from 'lucide-react';
 
-export default function Portfolio({ stats, completedProjectIds, activeGoal, wonChallengeIds }) {
+export default function Portfolio({ 
+  stats, 
+  completedProjectIds = [], 
+  activeGoal, 
+  wonChallengeIds = [],
+  projects = [],
+  challenges = []
+}) {
   // Get details of completed projects
-  const completedProjects = PROJECTS.filter(proj => completedProjectIds.includes(proj.id));
+  const completedProjects = projects.filter(proj => completedProjectIds.includes(proj.id));
 
   // Get details of won challenges
-  const wonChallenges = ARENA_CHALLENGES.filter(ch => wonChallengeIds.includes(ch.id));
+  const wonChallenges = challenges.filter(ch => wonChallengeIds.includes(ch.id));
 
   // Gather all skills verified by completed projects
   const verifiedSkills = [...new Set([
-    ...completedProjects.flatMap(proj => proj.skillsEarned),
+    ...completedProjects.flatMap(proj => proj.skillsEarned || []),
     ...wonChallenges.map(ch => ch.requiredSkill)
-  ])];
+  ])].filter(Boolean);
 
   const handlePrintCertificate = () => {
     window.print();
@@ -29,9 +35,11 @@ export default function Portfolio({ stats, completedProjectIds, activeGoal, wonC
         <div className="portfolio-info" style={{ flex: 1, minWidth: '250px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-display)' }}>Student Scholar</h2>
-            <span style={{ fontSize: '0.75rem', background: 'rgba(124, 58, 237, 0.15)', border: '1px solid rgba(124, 58, 237, 0.3)', color: '#c084fc', padding: '0.2rem 0.6rem', borderRadius: '99px', fontWeight: 700 }}>
-              {activeGoal} PATHWAY
-            </span>
+            {activeGoal && (
+              <span style={{ fontSize: '0.75rem', background: 'rgba(124, 58, 237, 0.15)', border: '1px solid rgba(124, 58, 237, 0.3)', color: '#c084fc', padding: '0.2rem 0.6rem', borderRadius: '99px', fontWeight: 700 }}>
+                {activeGoal} PATHWAY
+              </span>
+            )}
           </div>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.95rem' }}>
             Active student builder at CareerTwin.ai. Learning by building micro-applications and launching products for real businesses and communities.
@@ -116,15 +124,17 @@ export default function Portfolio({ stats, completedProjectIds, activeGoal, wonC
                         {ch.host} • {ch.category}
                       </span>
                       <h4 style={{ fontSize: '1.1rem', margin: '0.15rem 0' }}>{ch.title}</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        <span>💰 Capital: <strong>{ch.rewards.grant}</strong></span>
-                        <span>🏢 Workspace: <strong>{ch.rewards.incubation}</strong></span>
-                        <span>💼 Role Offer: <strong>{ch.rewards.offer}</strong></span>
-                      </div>
+                      {ch.rewards && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <span>💰 Capital: <strong>{ch.rewards.grant}</strong></span>
+                          <span>🏢 Workspace: <strong>{ch.rewards.incubation}</strong></span>
+                          <span>💼 Role Offer: <strong>{ch.rewards.offer}</strong></span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: '0.85rem', color: 'var(--accent-emerald)', fontWeight: 700, display: 'block' }}>Jury Winner ✓</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{ch.rewards.reputation} Rep</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{ch.rewards?.reputation} Rep</span>
                     </div>
                   </div>
                 ))}
@@ -152,18 +162,20 @@ export default function Portfolio({ stats, completedProjectIds, activeGoal, wonC
                         {proj.sponsor} ({proj.sponsorType})
                       </div>
                       <h4 style={{ fontSize: '1.1rem', margin: '0.2rem 0' }}>{proj.title}</h4>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
-                        {proj.skillsEarned.slice(0, 3).map(skill => (
-                          <span key={skill} style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
+                      {proj.skillsEarned && (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+                          {proj.skillsEarned.slice(0, 3).map(skill => (
+                            <span key={skill} style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 700, display: 'block' }}>Verified ✓</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{proj.rewards.credits} Credits</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{proj.rewards?.credits} Credits</span>
                     </div>
                   </div>
                 ))}

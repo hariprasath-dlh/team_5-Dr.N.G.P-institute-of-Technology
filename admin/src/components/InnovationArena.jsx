@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Award, ShieldAlert, Sparkles, RefreshCw, X, CheckCircle, ExternalLink, Calendar } from 'lucide-react';
-import { ARENA_CHALLENGES, getArenaJuryReview } from '../data/mockData';
+import { Award, ShieldAlert, Sparkles, RefreshCw, X, CheckCircle, ExternalLink, Calendar, Database } from 'lucide-react';
+import { getArenaJuryReview } from '../data/mockData';
 
 export default function InnovationArena({ 
   careerData, 
-  wonChallengeIds, 
+  challenges = [],
+  wonChallengeIds = [], 
   onWinChallenge,
   stats
 }) {
@@ -17,7 +18,7 @@ export default function InnovationArena({
   const [juryStatus, setJuryStatus] = useState(null); // 'approved' | 'rejected'
   const [juryFeedback, setJuryFeedback] = useState(null);
 
-  const filteredChallenges = ARENA_CHALLENGES.filter(item => {
+  const filteredChallenges = challenges.filter(item => {
     if (filterCategory === "All") return true;
     return item.category === filterCategory;
   });
@@ -49,14 +50,68 @@ export default function InnovationArena({
       if (review.status === 'approved') {
         onWinChallenge(
           selectedChallenge.id,
-          selectedChallenge.rewards.xp,
-          selectedChallenge.rewards.reputation
+          selectedChallenge.rewards?.xp || 1000,
+          selectedChallenge.rewards?.reputation || 30
         );
       }
     }, 2500);
   };
 
   const isChallengeWon = selectedChallenge ? wonChallengeIds.includes(selectedChallenge.id) : false;
+
+  // Guard: No Active Career Goal Pathway
+  if (!careerData) {
+    return (
+      <div className="arena-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Award size={48} style={{ color: 'var(--accent-violet)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Innovation Arena Locked</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            To activate hackathons and incubator funding challenge briefs, you must first define an active Career Specialization Pathway.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard: No Challenges exist
+  if (challenges.length === 0) {
+    return (
+      <div className="arena-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Sparkles size={48} style={{ color: 'var(--accent-cyan)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Innovation Arena Empty</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            No hackathons or incubator briefings are registered. Go to the Data Panel to add custom industry and NGO briefs!
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="arena-container">
@@ -83,7 +138,7 @@ export default function InnovationArena({
               onClick={() => setFilterCategory(cat)}
               className={`filter-btn ${filterCategory === cat ? 'active' : ''}`}
             >
-              {cat.split(' ')[0]}
+              {cat}
             </button>
           ))}
         </div>
@@ -92,7 +147,7 @@ export default function InnovationArena({
       {/* Grid of Challenges */}
       <div className="projects-grid">
         {filteredChallenges.map(challenge => {
-          const userSkill = careerData.skills.find(s => s.name === challenge.requiredSkill);
+          const userSkill = careerData.skills ? careerData.skills.find(s => s.name === challenge.requiredSkill) : null;
           const currentVal = userSkill ? userSkill.current : 0;
           const isEligible = currentVal >= challenge.minSkillLevel;
           const isWon = wonChallengeIds.includes(challenge.id);
@@ -133,20 +188,23 @@ export default function InnovationArena({
                 </div>
 
                 {/* Prize Pool */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-violet)', fontWeight: 800 }}>🏆 AWARD POOL:</span>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    <span>💰 Seed Capital: <strong>{challenge.rewards.grant}</strong></span>
-                    <span>🏢 Incubator: <strong>{challenge.rewards.incubation}</strong></span>
-                    <span>💼 Offer: <strong>{challenge.rewards.offer}</strong></span>
+                {challenge.rewards && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-violet)', fontWeight: 800 }}>🏆 AWARD POOL:</span>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <span>💰 Seed Capital: <strong>{challenge.rewards.grant}</strong></span>
+                      <span>🏢 Incubator: <strong>{challenge.rewards.incubation}</strong></span>
+                      <span>💼 Offer: <strong>{challenge.rewards.offer}</strong></span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Action button */}
                 <button
                   onClick={() => handleOpenWorkspace(challenge)}
                   className={`btn ${isWon ? 'btn-success' : 'btn-primary'}`}
                   style={{ width: '100%', marginTop: '1rem' }}
+                  disabled={!isEligible && !isWon}
                 >
                   {isWon ? 'Arena Brief Solved ✓' : isEligible ? 'Enter Innovation Arena' : 'Brief Locked (Skill Gaps)'}
                 </button>
@@ -213,18 +271,20 @@ export default function InnovationArena({
                   </div>
                 </div>
 
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                    WINNING PRIZE CREDENTIALS
-                  </h4>
-                  <div style={{ padding: '0.75rem', background: 'rgba(124, 58, 237, 0.04)', border: '1px solid rgba(124, 58, 237, 0.2)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <Sparkles size={16} style={{ color: 'var(--accent-violet)' }} />
-                      <strong style={{ color: '#fff' }}>Accelerator Onboarding</strong>
+                {selectedChallenge.rewards && (
+                  <div>
+                    <h4 style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                      WINNING PRIZE CREDENTIALS
+                    </h4>
+                    <div style={{ padding: '0.75rem', background: 'rgba(124, 58, 237, 0.04)', border: '1px solid rgba(124, 58, 237, 0.2)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <Sparkles size={16} style={{ color: 'var(--accent-violet)' }} />
+                        <strong style={{ color: '#fff' }}>Accelerator Onboarding</strong>
+                      </div>
+                      Seed funding and incubator slots will be logged under your Portfolio as verified credentials.
                     </div>
-                    Seed funding and incubator slots will be logged under your Portfolio as verified credentials.
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Right Column: Submission Console */}
@@ -291,13 +351,15 @@ export default function InnovationArena({
                 )}
 
                 {/* Rewards Preview */}
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: 'auto' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>ACADEMIC CREDITS REWARD:</span>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                    <span style={{ color: '#c084fc', fontWeight: 700 }}>🏆 +{selectedChallenge.rewards.xp} XP</span>
-                    <span style={{ color: '#22d3ee', fontWeight: 700 }}>⚡ +{selectedChallenge.rewards.reputation} Rep</span>
+                {selectedChallenge.rewards && (
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: 'auto' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>ACADEMIC CREDITS REWARD:</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                      <span style={{ color: '#c084fc', fontWeight: 700 }}>🏆 +{selectedChallenge.rewards.xp} XP</span>
+                      <span style={{ color: '#22d3ee', fontWeight: 700 }}>⚡ +{selectedChallenge.rewards.reputation} Rep</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
               </div>
 

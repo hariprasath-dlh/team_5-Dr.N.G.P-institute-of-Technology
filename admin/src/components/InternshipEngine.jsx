@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Briefcase, RefreshCw, CheckCircle, XCircle, ShieldCheck, Zap } from 'lucide-react';
-import { INTERNSHIPS, getInternshipMatchScore } from '../data/mockData';
+import { Briefcase, RefreshCw, CheckCircle, XCircle, ShieldCheck, Database } from 'lucide-react';
+import { getInternshipMatchScore } from '../data/mockData';
 
 export default function InternshipEngine({ 
   careerData, 
@@ -9,7 +9,7 @@ export default function InternshipEngine({
   stats,
   onAddStats,
   onUpdateInternshipStatus,
-  internshipList
+  internshipList = []
 }) {
   const [filterType, setFilterType] = useState("All");
   const [applyingId, setApplyingId] = useState(null);
@@ -23,39 +23,94 @@ export default function InternshipEngine({
   });
 
   const handleApply = (internship) => {
+    if (!careerData) return;
     setApplyingId(internship.id);
     setEvaluating(true);
     setMatchStatus(null);
     setMatchResultMsg("");
 
-    const matchScore = getInternshipMatchScore(internship, careerData.skills);
+    const matchScore = getInternshipMatchScore(internship, careerData.skills || []);
 
     setTimeout(() => {
       setEvaluating(false);
       
       if (matchScore >= 55) {
         setMatchStatus('approved');
-        setMatchResultMsg(`🎉 GRAPH MATCH SUCCESSFUL (Score: ${matchScore}%) 🎉\n\nAI matching engine has verified your skill signatures against the company requirement graphs. You are admitted! \n\nRewards Claimed: +${internship.rewards.xp} XP, +${internship.rewards.credits} Credits, +${internship.rewards.reputation} Reputation.`);
+        setMatchResultMsg(`🎉 GRAPH MATCH SUCCESSFUL (Score: ${matchScore}%) 🎉\n\nAI matching engine has verified your skill signatures against the company requirement graphs. You are admitted! \n\nRewards Claimed: +${internship.rewards?.xp || 800} XP, +${internship.rewards?.credits || 5} Credits, +${internship.rewards?.reputation || 20} Reputation.`);
         
         onUpdateInternshipStatus(internship.id, 'approved');
-        onAddStats(internship.rewards.xp, internship.rewards.credits, internship.rewards.reputation);
+        onAddStats(internship.rewards?.xp || 800, internship.rewards?.credits || 5, internship.rewards?.reputation || 20);
       } else {
         setMatchStatus('rejected');
         
         // Find missing requirements to give advice
-        const missingGaps = internship.requirements.map(req => {
-          const userSkill = careerData.skills.find(s => s.name === req.name);
+        const missingGaps = internship.requirements ? internship.requirements.map(req => {
+          const userSkill = careerData.skills ? careerData.skills.find(s => s.name === req.name) : null;
           const currentVal = userSkill ? userSkill.current : 0;
           if (currentVal < req.minLevel) {
             return `"${req.name}" (Need: ${req.minLevel}%, You have: ${currentVal}%)`;
           }
           return null;
-        }).filter(Boolean);
+        }).filter(Boolean) : [];
 
-        setMatchResultMsg(`❌ GRAPH MATCH FAILURE (Score: ${matchScore}%) ❌\n\nYour verified skill graph does not yet satisfy company requirement weights.\n\nUnmet Gaps:\n${missingGaps.join("\n")}\n\nAI Advisor Recommendation:\nBrowse the Marketplace and build relevant projects to boost these specific skills!`);
+        setMatchResultMsg(`❌ GRAPH MATCH FAILURE (Score: ${matchScore}%) ❌\n\nYour verified skill graph does not yet satisfy company requirement weights.\n\nUnmet Gaps:\n${missingGaps.length > 0 ? missingGaps.join("\n") : "Requires more projects in target pathway"}\n\nAI Advisor Recommendation:\nBrowse the Marketplace and build relevant projects to boost these specific skills!`);
       }
     }, 2200);
   };
+
+  // Guard: No Career Goal Pathway configured
+  if (!careerData) {
+    return (
+      <div className="internship-engine-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Briefcase size={48} style={{ color: 'var(--accent-violet)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Internship Engine Locked</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            To activate corporate matching nodes, you must first create and select an active Career Specialization Pathway.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard: No Internship list exists
+  if (internshipList.length === 0) {
+    return (
+      <div className="internship-engine-container">
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <Briefcase size={48} style={{ color: 'var(--accent-violet)', marginBottom: '1rem' }} />
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>No Internships Posted</h3>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem auto', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Corporate requirement profiles are empty. Go to the Data Panel to add custom micro-internships and remote project openings.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button 
+              onClick={() => {
+                const manageTabBtn = document.querySelector('button[style*="color: var(--accent-cyan)"]');
+                if (manageTabBtn) manageTabBtn.click();
+              }}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Database size={16} /> Open Data Panel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="internship-engine-container">
@@ -85,7 +140,7 @@ export default function InternshipEngine({
             </span>
 
             <div className="skills-container" style={{ marginTop: '0.5rem' }}>
-              {careerData.skills.map(skill => (
+              {careerData.skills && careerData.skills.map(skill => (
                 <div key={skill.name} className="skill-row" style={{ gap: '0.35rem' }}>
                   <div className="skill-info" style={{ fontSize: '0.8rem' }}>
                     <span>{skill.name}</span>
@@ -161,7 +216,7 @@ export default function InternshipEngine({
             {/* List of Openings */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {filteredInternships.map(intern => {
-                const score = getInternshipMatchScore(intern, careerData.skills);
+                const score = getInternshipMatchScore(intern, careerData.skills || []);
                 const isApproved = intern.status === 'approved';
                 const isUnderEvaluation = applyingId === intern.id && evaluating;
 
@@ -194,28 +249,30 @@ export default function InternshipEngine({
                       </p>
 
                       {/* Required graphs comparison */}
-                      <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', margin: '0.75rem 0' }}>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>REQUIRED SKILL WEIGHTS:</span>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                          {intern.requirements.map(req => {
-                            const userSkill = careerData.skills.find(s => s.name === req.name);
-                            const currentVal = userSkill ? userSkill.current : 0;
-                            const isMet = currentVal >= req.minLevel;
+                      {intern.requirements && (
+                        <div style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', margin: '0.75rem 0' }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>REQUIRED SKILL WEIGHTS:</span>
+                          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                            {intern.requirements.map(req => {
+                              const userSkill = careerData.skills ? careerData.skills.find(s => s.name === req.name) : null;
+                              const currentVal = userSkill ? userSkill.current : 0;
+                              const isMet = currentVal >= req.minLevel;
 
-                            return (
-                              <span key={req.name} style={{ fontSize: '0.7rem', color: isMet ? '#34d399' : '#f472b6', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                {isMet ? '●' : '○'} {req.name} (Need: {req.minLevel}%)
-                              </span>
-                            );
-                          })}
+                              return (
+                                <span key={req.name} style={{ fontSize: '0.7rem', color: isMet ? '#34d399' : '#f472b6', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  {isMet ? '●' : '○'} {req.name} (Need: {req.minLevel}%)
+                                </span>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Apply buttons */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
                         <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           <span>⏱️ {intern.duration}</span>
-                          <span>🏆 +{intern.rewards.xp} XP</span>
+                          <span>🏆 +{intern.rewards?.xp || 800} XP</span>
                         </div>
 
                         <button
